@@ -1,0 +1,9 @@
+{
+  "name": "city-timezone-vercel",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Public page with Vercel Functions for city search, coordinates and timezone",
+  "scripts": {
+    "start": "vercel dev"
+  }
+}
