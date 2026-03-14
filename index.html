@@ -3,237 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Поиск города и часового пояса</title>
+  <title>Город, координаты и часовой пояс</title>
   <style>
-    :root {
-      color-scheme: light;
-      --bg: #f7f7fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --border: #d1d5db;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    .wrap {
-      max-width: 820px;
-      margin: 32px auto;
-      padding: 0 16px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.05);
-    }
-    h1 {
-      margin: 0 0 20px;
-      font-size: 28px;
-    }
-    .hint {
-      color: var(--muted);
-      margin: 0 0 20px;
-      line-height: 1.4;
-    }
-    label {
-      display: block;
-      margin: 14px 0 6px;
-      font-weight: 700;
-    }
-    input, button {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      font-size: 16px;
-    }
-    input:focus {
-      outline: 2px solid rgba(37,99,235,.15);
-      border-color: var(--accent);
-    }
-    button {
-      margin-top: 18px;
-      border: none;
-      background: var(--accent);
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    button:hover:not(:disabled) {
-      background: var(--accent-hover);
-    }
-    button:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-    .list {
-      margin-top: 8px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      background: #fff;
-      display: none;
-    }
-    .item {
-      padding: 12px 14px;
-      border-bottom: 1px solid #eef2f7;
-      cursor: pointer;
-    }
-    .item:last-child { border-bottom: none; }
+    body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; color:#0f172a; }
+    h1 { margin-bottom: 12px; }
+    p { color:#475569; line-height:1.5; }
+    input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; font-size:16px; }
+    button { background:#2563eb; color:white; border:none; border-radius:10px; font-weight:600; cursor:pointer; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .list { border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; margin-top:4px; }
+    .item { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; background: #fff; }
+    .item:last-child { border-bottom:none; }
     .item:hover { background: #f8fafc; }
-    .status {
-      margin-top: 16px;
-      color: var(--muted);
-      min-height: 20px;
-    }
-    pre {
-      margin-top: 16px;
-      background: #111827;
-      color: #e5e7eb;
-      border-radius: 12px;
-      padding: 16px;
-      overflow: auto;
-      min-height: 120px;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+    pre { background: #0b1730; color:#f8fafc; padding: 14px; border-radius: 12px; overflow: auto; white-space: pre-wrap; }
+    label { display:block; font-weight:700; margin-top: 14px; }
+    .row { display:grid; grid-template-columns: 1fr 180px; gap:12px; }
+    .status { margin: 12px 0; color:#475569; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Город, координаты и часовой пояс</h1>
-      <p class="hint">
-        Введите населённый пункт на кириллице, выберите вариант из списка и укажите дату.
-        После этого страница вызовет серверный endpoint, который получит координаты, часовой пояс
-        и при необходимости обратится к вашему дополнительному API.
-      </p>
+  <h1>Город, координаты и часовой пояс</h1>
+  <p>Введите населённый пункт на кириллице, выберите вариант из списка, укажите дату и время. После этого страница вызовет серверный endpoint, который получит координаты, часовой пояс и результат из Prokerala API.</p>
 
-      <label for="cityInput">Населённый пункт</label>
-      <input id="cityInput" type="text" placeholder="Например: Берегове" autocomplete="off" />
-      <div id="suggestions" class="list"></div>
+  <label>Населённый пункт</label>
+  <input id="cityInput" type="text" placeholder="Например: Київ" autocomplete="off" />
+  <div id="suggestions" class="list"></div>
 
-      <label for="dateInput">Дата</label>
-      <input id="dateInput" type="date" />
-
-      <button id="runBtn" disabled>Получить данные</button>
-      <div id="status" class="status"></div>
-      <pre id="result">Ожидание ввода...</pre>
-    </div>
+  <label>Дата и время</label>
+  <div class="row">
+    <input id="dateInput" type="date" />
+    <input id="timeInput" type="time" />
   </div>
+
+  <button id="runBtn" disabled>Получить данные</button>
+
+  <div id="status" class="status">Готово.</div>
+
+  <pre id="result">{}</pre>
 
   <script>
     const cityInput = document.getElementById('cityInput');
     const dateInput = document.getElementById('dateInput');
+    const timeInput = document.getElementById('timeInput');
     const suggestions = document.getElementById('suggestions');
-    const runBtn = document.getElementById('runBtn');
     const result = document.getElementById('result');
     const statusEl = document.getElementById('status');
+    const runBtn = document.getElementById('runBtn');
 
-    let timer = null;
     let selectedPlace = null;
+    let timer = null;
 
-    function setStatus(text) {
-      statusEl.textContent = text || '';
-    }
-
-    function setSuggestions(items) {
-      suggestions.innerHTML = '';
-      if (!items.length) {
-        suggestions.style.display = 'none';
-        return;
-      }
-
-      items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.textContent = item.text;
-        div.addEventListener('click', () => {
-          selectedPlace = item;
-          cityInput.value = item.text;
-          suggestions.innerHTML = '';
-          suggestions.style.display = 'none';
-          setStatus('Выбран населённый пункт: ' + item.text);
-          runBtn.disabled = !dateInput.value;
-        });
-        suggestions.appendChild(div);
-      });
-
-      suggestions.style.display = 'block';
+    function refreshButtonState() {
+      runBtn.disabled = !(selectedPlace && dateInput.value && timeInput.value);
     }
 
     cityInput.addEventListener('input', () => {
-      const q = cityInput.value.trim();
       selectedPlace = null;
-      runBtn.disabled = true;
+      refreshButtonState();
       clearTimeout(timer);
-      setStatus('');
+      suggestions.innerHTML = '';
 
-      if (q.length < 2) {
-        setSuggestions([]);
-        return;
-      }
+      const q = cityInput.value.trim();
+      if (q.length < 2) return;
 
       timer = setTimeout(async () => {
         try {
-          setStatus('Поиск населённого пункта...');
+          statusEl.textContent = 'Поиск населённого пункта...';
           const resp = await fetch('/api/autocomplete?q=' + encodeURIComponent(q));
           const data = await resp.json();
 
-          if (!resp.ok) {
-            throw new Error(data.error || 'Ошибка поиска');
-          }
+          suggestions.innerHTML = '';
+          (data.suggestions || []).forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.textContent = item.text;
+            div.onclick = () => {
+              selectedPlace = item;
+              cityInput.value = item.text;
+              suggestions.innerHTML = '';
+              statusEl.textContent = 'Населённый пункт выбран.';
+              refreshButtonState();
+            };
+            suggestions.appendChild(div);
+          });
 
-          setSuggestions(data.suggestions || []);
-          setStatus((data.suggestions || []).length ? 'Выберите вариант из списка.' : 'Ничего не найдено.');
-        } catch (err) {
-          setSuggestions([]);
-          setStatus('Ошибка: ' + err.message);
+          if (!(data.suggestions || []).length) {
+            statusEl.textContent = 'Ничего не найдено.';
+          }
+        } catch (e) {
+          statusEl.textContent = 'Ошибка поиска: ' + e.message;
+          suggestions.innerHTML = '';
         }
       }, 300);
     });
 
-    dateInput.addEventListener('change', () => {
-      runBtn.disabled = !(selectedPlace && dateInput.value);
-    });
+    dateInput.addEventListener('change', refreshButtonState);
+    timeInput.addEventListener('change', refreshButtonState);
 
     runBtn.addEventListener('click', async () => {
-      if (!selectedPlace || !dateInput.value) return;
+      if (!selectedPlace || !dateInput.value || !timeInput.value) return;
+
+      result.textContent = 'Загрузка...';
+      statusEl.textContent = 'Получение данных...';
 
       try {
-        runBtn.disabled = true;
-        setStatus('Запрос к серверу...');
-        result.textContent = 'Загрузка...';
-
         const resp = await fetch('/api/city-info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             placeId: selectedPlace.placeId,
-            date: dateInput.value
+            date: dateInput.value,
+            time: timeInput.value
           })
         });
 
         const data = await resp.json();
-        if (!resp.ok) {
-          throw new Error(data.error || 'Ошибка запроса');
-        }
-
         result.textContent = JSON.stringify(data, null, 2);
-        setStatus('Готово.');
-      } catch (err) {
-        result.textContent = 'Ошибка: ' + err.message;
-        setStatus('');
-      } finally {
-        runBtn.disabled = !(selectedPlace && dateInput.value);
+        statusEl.textContent = resp.ok ? 'Готово.' : 'Ошибка выполнения.';
+      } catch (e) {
+        result.textContent = JSON.stringify({ error: e.message }, null, 2);
+        statusEl.textContent = 'Ошибка: ' + e.message;
       }
     });
   </script>
