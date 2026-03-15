@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Город, координаты и часовой пояс</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; color:#0f172a; }
+    body { font-family: Arial, sans-serif; max-width: 1180px; margin: 40px auto; padding: 0 16px; color:#0f172a; background:#f8fafc; }
     h1 { margin-bottom: 12px; }
     p { color:#475569; line-height:1.5; }
     input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; font-size:16px; }
     button { background:#2563eb; color:white; border:none; border-radius:10px; font-weight:600; cursor:pointer; }
     button:disabled { opacity:.6; cursor:not-allowed; }
-    .list { border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; margin-top:4px; }
+    .list { border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; margin-top:4px; background:#fff; }
     .item { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; background: #fff; }
     .item:last-child { border-bottom:none; }
     .item:hover { background: #f8fafc; }
@@ -19,6 +19,35 @@
     label { display:block; font-weight:700; margin-top: 14px; }
     .row { display:grid; grid-template-columns: 1fr 180px; gap:12px; }
     .status { margin: 12px 0; color:#475569; }
+
+    .final-wrap { display:none; grid-template-columns: 2.2fr 1fr; gap:28px; margin: 26px 0 18px; align-items:start; }
+    .panel { background:#fff; border:1px solid #dbe3ef; border-radius:6px; box-shadow:0 1px 3px rgba(15,23,42,.08); }
+    .elements-panel { padding: 18px 24px 20px; }
+    .elements-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .element-col { min-width:0; }
+    .element-label { font-size: 14px; color:#111827; margin-bottom: 20px; }
+    .element-badge { display:inline-flex; align-items:center; justify-content:center; min-width:100px; height:46px; border-radius:4px; color:#fff; font-weight:700; font-size:17px; padding:0 16px; }
+    .el-fire { background:#f97316; }
+    .el-earth { background:#8b5e3c; }
+    .el-air { background:#0ea5e9; }
+    .el-water { background:#6d3fd1; }
+    .degree { margin-top:10px; font-size:12px; color:#64748b; }
+
+    .birth-panel { padding: 18px 18px 16px; }
+    .birth-title { font-weight:700; font-size: 18px; margin-bottom: 14px; }
+    .birth-row { display:flex; gap:10px; align-items:flex-start; margin: 10px 0; color:#0f172a; }
+    .birth-icon { width:18px; text-align:center; font-size:16px; line-height:1.2; }
+    .birth-text { line-height:1.35; word-break:break-word; }
+    .edit-btn { margin-top: 10px; width:auto; background:#fff; color:#2563eb; border:1px solid #93c5fd; padding:9px 14px; border-radius:4px; font-size:15px; }
+    .section-title { margin: 22px 0 10px; font-size: 18px; font-weight:700; }
+
+    @media (max-width: 980px) {
+      .final-wrap { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .elements-grid { grid-template-columns: 1fr 1fr; }
+      .row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -39,6 +68,30 @@
 
   <div id="status" class="status">Готово.</div>
 
+  <div id="finalWrap" class="final-wrap">
+    <div class="panel elements-panel">
+      <div class="elements-grid" id="elementsGrid"></div>
+    </div>
+
+    <div class="panel birth-panel">
+      <div class="birth-title">Данные рождения</div>
+      <div class="birth-row">
+        <div class="birth-icon">🗓️</div>
+        <div class="birth-text" id="birthDateTime">—</div>
+      </div>
+      <div class="birth-row">
+        <div class="birth-icon">📍</div>
+        <div class="birth-text" id="birthPlace">—</div>
+      </div>
+      <div class="birth-row">
+        <div class="birth-icon">🧭</div>
+        <div class="birth-text" id="birthCoords">—</div>
+      </div>
+      <button id="editBtn" class="edit-btn" type="button">✏️ Изменить</button>
+    </div>
+  </div>
+
+  <div class="section-title">Технический ответ</div>
   <pre id="result">{}</pre>
 
   <script>
@@ -49,13 +102,136 @@
     const result = document.getElementById('result');
     const statusEl = document.getElementById('status');
     const runBtn = document.getElementById('runBtn');
+    const finalWrap = document.getElementById('finalWrap');
+    const elementsGrid = document.getElementById('elementsGrid');
+    const birthDateTime = document.getElementById('birthDateTime');
+    const birthPlace = document.getElementById('birthPlace');
+    const birthCoords = document.getElementById('birthCoords');
+    const editBtn = document.getElementById('editBtn');
 
     let selectedPlace = null;
     let timer = null;
 
+    const signDictionary = {
+      1: { sanskrit: 'Mesha', ru: 'Овен', element: 'Огонь', cls: 'el-fire' },
+      2: { sanskrit: 'Vrishabha', ru: 'Телец', element: 'Земля', cls: 'el-earth' },
+      3: { sanskrit: 'Mithuna', ru: 'Близнецы', element: 'Воздух', cls: 'el-air' },
+      4: { sanskrit: 'Karka', ru: 'Рак', element: 'Вода', cls: 'el-water' },
+      5: { sanskrit: 'Simha', ru: 'Лев', element: 'Огонь', cls: 'el-fire' },
+      6: { sanskrit: 'Kanya', ru: 'Дева', element: 'Земля', cls: 'el-earth' },
+      7: { sanskrit: 'Tula', ru: 'Весы', element: 'Воздух', cls: 'el-air' },
+      8: { sanskrit: 'Vrischika', ru: 'Скорпион', element: 'Вода', cls: 'el-water' },
+      9: { sanskrit: 'Dhanu', ru: 'Стрелец', element: 'Огонь', cls: 'el-fire' },
+      10: { sanskrit: 'Makara', ru: 'Козерог', element: 'Земля', cls: 'el-earth' },
+      11: { sanskrit: 'Kumbha', ru: 'Водолей', element: 'Воздух', cls: 'el-air' },
+      12: { sanskrit: 'Meena', ru: 'Рыбы', element: 'Вода', cls: 'el-water' }
+    };
+
     function refreshButtonState() {
       runBtn.disabled = !(selectedPlace && dateInput.value && timeInput.value);
     }
+
+    function formatDateForDisplay(isoDate) {
+      if (!isoDate) return '—';
+      const [y, m, d] = isoDate.split('-');
+      return `${d}.${m}.${y}`;
+    }
+
+    function formatOffset(seconds) {
+      const sign = seconds >= 0 ? '+' : '-';
+      const abs = Math.abs(seconds);
+      const hh = String(Math.floor(abs / 3600)).padStart(2, '0');
+      const mm = String(Math.floor((abs % 3600) / 60)).padStart(2, '0');
+      return `${sign}${hh}:${mm}`;
+    }
+
+    function formatCoord(value, positivePrefix, negativePrefix) {
+      const prefix = value >= 0 ? positivePrefix : negativePrefix;
+      return `${prefix}${Math.abs(value).toFixed(4)}°`;
+    }
+
+    function getPlanet(planets, id) {
+      return (planets || []).find(x => Number(x.id) === Number(id));
+    }
+
+    function elementByPosition(position) {
+      return signDictionary[Number(position)] || null;
+    }
+
+    function formatDegree(value) {
+      return typeof value === 'number' ? value.toFixed(6) + '°' : '—';
+    }
+
+    function computeElements(data) {
+      const planets = data?.prokeralaResponse?.data?.planet_position || [];
+      const asc = getPlanet(planets, 100);
+      const moon = getPlanet(planets, 1);
+      const sun = getPlanet(planets, 0);
+
+      if (!asc || !moon || !sun) return null;
+
+      const ascElement = elementByPosition(asc.position);
+      const lordId = asc?.rasi?.lord?.id;
+      const lordPlanet = getPlanet(planets, lordId);
+      const lordElement = lordPlanet ? elementByPosition(lordPlanet.position) : null;
+      const moonElement = elementByPosition(moon.position);
+      const sunElement = elementByPosition(sun.position);
+
+      return [
+        {
+          title: '1-й первоэлемент',
+          element: ascElement?.element || '—',
+          degree: formatDegree(asc.degree),
+          cls: ascElement?.cls || 'el-water'
+        },
+        {
+          title: '2-й первоэлемент',
+          element: lordElement?.element || '—',
+          degree: formatDegree(lordPlanet?.degree),
+          cls: lordElement?.cls || 'el-water'
+        },
+        {
+          title: '3-й первоэлемент',
+          element: moonElement?.element || '—',
+          degree: formatDegree(moon.degree),
+          cls: moonElement?.cls || 'el-water'
+        },
+        {
+          title: '4-й первоэлемент',
+          element: sunElement?.element || '—',
+          degree: formatDegree(sun.degree),
+          cls: sunElement?.cls || 'el-water'
+        }
+      ];
+    }
+
+    function renderFinalResult(data) {
+      const items = computeElements(data);
+      if (!items) {
+        finalWrap.style.display = 'none';
+        return;
+      }
+
+      elementsGrid.innerHTML = items.map(item => `
+        <div class="element-col">
+          <div class="element-label">${item.title}</div>
+          <div class="element-badge ${item.cls}">${item.element}</div>
+          <div class="degree">${item.degree}</div>
+        </div>
+      `).join('');
+
+      const offset = data?.timezone?.totalOffsetSeconds || 0;
+      birthDateTime.textContent = `${formatDateForDisplay(data.date)} ${data.time}:00 ${formatOffset(offset)}`;
+      birthPlace.textContent = data.city ? `${data.city}, ${data.address?.includes('Ukraine') ? 'Украина' : data.address || ''}` : (data.address || '—');
+      birthCoords.textContent = `${formatCoord(data.coordinates?.lng || 0, 'E', 'W')}, ${formatCoord(data.coordinates?.lat || 0, 'N', 'S')}`;
+
+      finalWrap.style.display = 'grid';
+    }
+
+    editBtn.addEventListener('click', () => {
+      cityInput.focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     cityInput.addEventListener('input', () => {
       selectedPlace = null;
@@ -119,9 +295,11 @@
 
         const data = await resp.json();
         result.textContent = JSON.stringify(data, null, 2);
+        renderFinalResult(data);
         statusEl.textContent = resp.ok ? 'Готово.' : 'Ошибка выполнения.';
       } catch (e) {
         result.textContent = JSON.stringify({ error: e.message }, null, 2);
+        finalWrap.style.display = 'none';
         statusEl.textContent = 'Ошибка: ' + e.message;
       }
     });
