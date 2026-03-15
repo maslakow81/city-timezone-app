@@ -1,23 +1,45 @@
-function buildDatetime(date, time, offsetSeconds) {
-  const [hh, mm] = String(time || '').split(':').map(Number);
-  if (!Number.isFinite(hh) || !Number.isFinite(mm)) {
-    throw new Error('Некорректное время');
-  }
+function buildDatetime(date, time, totalOffsetSeconds) {
+    const [year, month, day] = date.split('-').map(Number);
+    const [hours, minutes] = time.split(':').map(Number);
 
-  const offsetMinutes = Math.trunc(offsetSeconds / 60);
-  const enteredMinutes = hh * 60 + mm;
-  const shiftedMinutes = enteredMinutes - offsetMinutes;
+    // Локальное время формы переводим в минуты
+    const formTotalMinutes = hours * 60 + minutes;
 
-  const normalizedMinutes = ((shiftedMinutes % 1440) + 1440) % 1440;
-  const outH = String(Math.floor(normalizedMinutes / 60)).padStart(2, '0');
-  const outM = String(normalizedMinutes % 60).padStart(2, '0');
+    // Смещение в минутах
+    const offsetMinutes = Math.trunc(totalOffsetSeconds / 60);
 
-  const sign = offsetSeconds >= 0 ? '%2B' : '-';
-  const abs = Math.abs(offsetSeconds);
-  const tzH = String(Math.floor(abs / 3600)).padStart(2, '0');
-  const tzM = String(Math.floor((abs % 3600) / 60)).padStart(2, '0');
+    // По твоей логике:
+    // если offset положительный -> вычитаем
+    // если offset отрицательный -> прибавляем
+    // это одинаково как: formTotalMinutes - offsetMinutes
+    const shiftedTotalMinutes = formTotalMinutes - offsetMinutes;
 
-  return `${date}T${outH}:${outM}:00${sign}${tzH}:${tzM}`;
+    // Базовая дата в UTC, чтобы безопасно сдвигать сутки
+    const baseDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+
+    // Сколько суток ушло вперёд/назад
+    const dayShift = Math.floor(shiftedTotalMinutes / 1440);
+
+    // Минуты внутри суток 0..1439
+    const normalizedMinutes = ((shiftedTotalMinutes % 1440) + 1440) % 1440;
+
+    // Сдвигаем дату на нужное число суток
+    baseDate.setUTCDate(baseDate.getUTCDate() + dayShift);
+
+    const outYear = baseDate.getUTCFullYear();
+    const outMonth = String(baseDate.getUTCMonth() + 1).padStart(2, '0');
+    const outDay = String(baseDate.getUTCDate()).padStart(2, '0');
+
+    const outHours = String(Math.floor(normalizedMinutes / 60)).padStart(2, '0');
+    const outMinutes = String(normalizedMinutes % 60).padStart(2, '0');
+
+    // Формируем timezone suffix
+    const sign = totalOffsetSeconds >= 0 ? '%2B' : '-';
+    const absOffsetMinutes = Math.abs(offsetMinutes);
+    const tzHours = String(Math.floor(absOffsetMinutes / 60)).padStart(2, '0');
+    const tzMinutes = String(absOffsetMinutes % 60).padStart(2, '0');
+
+    return `${outYear}-${outMonth}-${outDay}T${outHours}:${outMinutes}:00${sign}${tzHours}:${tzMinutes}`;
 }
 
 async function getProkeralaToken() {
