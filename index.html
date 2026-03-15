@@ -41,6 +41,11 @@
     .edit-btn { margin-top: 10px; width:auto; background:#fff; color:#2563eb; border:1px solid #93c5fd; padding:9px 14px; border-radius:4px; font-size:15px; }
     .section-title { margin: 22px 0 10px; font-size: 18px; font-weight:700; }
 
+    .chart-panel { display:none; margin: 18px 0 22px; padding: 16px; }
+    .chart-title { font-weight:700; font-size:18px; margin-bottom: 12px; }
+    .chart-wrap { overflow:auto; background:#fff; border-radius:6px; }
+    .chart-wrap svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+
     @media (max-width: 980px) {
       .final-wrap { grid-template-columns: 1fr; }
     }
@@ -91,6 +96,11 @@
     </div>
   </div>
 
+  <div id="chartPanel" class="panel chart-panel">
+    <div class="chart-title">Астрологическая карта</div>
+    <div id="chartWrap" class="chart-wrap"></div>
+  </div>
+
   <div class="section-title">Технический ответ</div>
   <pre id="result">{}</pre>
 
@@ -108,6 +118,8 @@
     const birthPlace = document.getElementById('birthPlace');
     const birthCoords = document.getElementById('birthCoords');
     const editBtn = document.getElementById('editBtn');
+    const chartPanel = document.getElementById('chartPanel');
+    const chartWrap = document.getElementById('chartWrap');
 
     let selectedPlace = null;
     let timer = null;
@@ -213,23 +225,30 @@
       const items = computeElements(data);
       if (!items) {
         finalWrap.style.display = 'none';
-        return;
+      } else {
+        elementsGrid.innerHTML = items.map(item => `
+          <div class="element-col">
+            <div class="element-label">${item.title}</div>
+            <div class="element-badge ${item.cls}">${item.element}</div>
+            <div class="degree">${item.degree}</div>
+          </div>
+        `).join('');
+
+        const offset = data?.timezone?.totalOffsetSeconds || 0;
+        birthDateTime.textContent = `${formatDateForDisplay(data.date)} ${data.time}:00 ${formatOffset(offset)}`;
+        birthPlace.textContent = data.city ? `${data.city}, ${data.address?.includes('Ukraine') ? 'Украина' : data.address || ''}` : (data.address || '—');
+        birthCoords.textContent = `${formatCoord(data.coordinates?.lng || 0, 'E', 'W')}, ${formatCoord(data.coordinates?.lat || 0, 'N', 'S')}`;
+
+        finalWrap.style.display = 'grid';
       }
 
-      elementsGrid.innerHTML = items.map(item => `
-        <div class="element-col">
-          <div class="element-label">${item.title}</div>
-          <div class="element-badge ${item.cls}">${item.element}</div>
-          <div class="degree">${item.degree}</div>
-        </div>
-      `).join('');
-
-      const offset = data?.timezone?.totalOffsetSeconds || 0;
-      birthDateTime.textContent = `${formatDateForDisplay(data.date)} ${data.time}:00 ${formatOffset(offset)}`;
-      birthPlace.textContent = data.city ? `${data.city}, ${data.address?.includes('Ukraine') ? 'Украина' : data.address || ''}` : (data.address || '—');
-      birthCoords.textContent = `${formatCoord(data.coordinates?.lng || 0, 'E', 'W')}, ${formatCoord(data.coordinates?.lat || 0, 'N', 'S')}`;
-
-      finalWrap.style.display = 'grid';
+      if (data.chartSvg) {
+        chartWrap.innerHTML = data.chartSvg;
+        chartPanel.style.display = 'block';
+      } else {
+        chartWrap.innerHTML = '';
+        chartPanel.style.display = 'none';
+      }
     }
 
     editBtn.addEventListener('click', () => {
@@ -304,6 +323,7 @@
       } catch (e) {
         result.textContent = JSON.stringify({ error: e.message }, null, 2);
         finalWrap.style.display = 'none';
+        chartPanel.style.display = 'none';
         statusEl.textContent = 'Ошибка: ' + e.message;
       }
     });
