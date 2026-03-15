@@ -158,8 +158,12 @@
       return signDictionary[Number(position)] || null;
     }
 
-    function formatDegree(value) {
-      return typeof value === 'number' ? value.toFixed(6) + '°' : '—';
+    function formatDegree(value, position) {
+      if (typeof value !== 'number') return '—';
+      const sign = elementByPosition(position);
+      return sign
+        ? `${value.toFixed(6)}° - ${sign.ru}`
+        : `${value.toFixed(6)}°`;
     }
 
     function computeElements(data) {
@@ -181,25 +185,25 @@
         {
           title: '1-й первоэлемент',
           element: ascElement?.element || '—',
-          degree: formatDegree(asc.degree),
+          degree: formatDegree(asc.degree, asc.position),
           cls: ascElement?.cls || 'el-water'
         },
         {
           title: '2-й первоэлемент',
           element: lordElement?.element || '—',
-          degree: formatDegree(lordPlanet?.degree),
+          degree: formatDegree(lordPlanet?.degree, lordPlanet?.position),
           cls: lordElement?.cls || 'el-water'
         },
         {
           title: '3-й первоэлемент',
           element: moonElement?.element || '—',
-          degree: formatDegree(moon.degree),
+          degree: formatDegree(moon.degree, moon.position),
           cls: moonElement?.cls || 'el-water'
         },
         {
           title: '4-й первоэлемент',
           element: sunElement?.element || '—',
-          degree: formatDegree(sun.degree),
+          degree: formatDegree(sun.degree, sun.position),
           cls: sunElement?.cls || 'el-water'
         }
       ];
