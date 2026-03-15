@@ -20,30 +20,69 @@
     .row { display:grid; grid-template-columns: 1fr 180px; gap:12px; }
     .status { margin: 12px 0; color:#475569; }
 
-    .final-wrap { display:none; grid-template-columns: 2.2fr 1fr; gap:28px; margin: 26px 0 18px; align-items:start; }
-    .panel { background:#fff; border:1px solid #dbe3ef; border-radius:6px; box-shadow:0 1px 3px rgba(15,23,42,.08); }
-    .elements-panel { padding: 18px 24px 20px; }
+    .final-wrap { display:none; grid-template-columns: 2.2fr 1fr; gap:24px; margin: 26px 0 18px; align-items:start; }
+    .panel {
+      background:#fff;
+      border:1px solid #dbe3ef;
+      border-radius:12px;
+      box-shadow:0 1px 3px rgba(15,23,42,.08);
+    }
+    .elements-panel,
+    .birth-panel { padding: 18px 20px 20px; }
     .elements-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
     .element-col { min-width:0; }
-    .element-label { font-size: 14px; color:#111827; margin-bottom: 20px; }
-    .element-badge { display:inline-flex; align-items:center; justify-content:center; min-width:100px; height:46px; border-radius:4px; color:#fff; font-weight:700; font-size:17px; padding:0 16px; }
+    .element-label {
+      font-size: 13px;
+      color:#334155;
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+    .element-badge {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:100px;
+      height:46px;
+      border-radius:8px;
+      color:#fff;
+      font-weight:700;
+      font-size:17px;
+      padding:0 16px;
+      box-shadow: inset 0 -1px 0 rgba(255,255,255,.15);
+    }
     .el-fire { background:#f97316; }
     .el-earth { background:#8b5e3c; }
     .el-air { background:#0ea5e9; }
     .el-water { background:#6d3fd1; }
-    .degree { margin-top:10px; font-size:12px; color:#64748b; }
+    .degree { margin-top:10px; font-size:12px; color:#64748b; line-height:1.35; }
 
-    .birth-panel { padding: 18px 18px 16px; }
-    .birth-title { font-weight:700; font-size: 18px; margin-bottom: 14px; }
-    .birth-row { display:flex; gap:10px; align-items:flex-start; margin: 10px 0; color:#0f172a; }
-    .birth-icon { width:18px; text-align:center; font-size:16px; line-height:1.2; }
+    .birth-title,
+    .elements-title { font-weight:700; font-size:16px; margin-bottom: 14px; color:#0f172a; }
+    .birth-row {
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      margin: 9px 0;
+      color:#334155;
+      font-size: 13px;
+    }
+    .birth-icon { width:18px; text-align:center; font-size:14px; line-height:1.2; margin-top:1px; }
     .birth-text { line-height:1.35; word-break:break-word; }
-    .edit-btn { margin-top: 10px; width:auto; background:#fff; color:#2563eb; border:1px solid #93c5fd; padding:9px 14px; border-radius:4px; font-size:15px; }
+    .edit-btn {
+      margin-top: 10px;
+      width:auto;
+      background:#fff;
+      color:#2563eb;
+      border:1px solid #93c5fd;
+      padding:9px 14px;
+      border-radius:8px;
+      font-size:14px;
+    }
     .section-title { margin: 22px 0 10px; font-size: 18px; font-weight:700; }
 
     .chart-panel { display:none; margin: 18px 0 22px; padding: 16px; }
-    .chart-title { font-weight:700; font-size:18px; margin-bottom: 12px; }
-    .chart-wrap { overflow:auto; background:#fff; border-radius:6px; }
+    .chart-title { font-weight:700; font-size:16px; margin-bottom: 12px; color:#0f172a; }
+    .chart-wrap { overflow:auto; background:#fff; border-radius:8px; }
     .chart-wrap svg { display:block; max-width:100%; height:auto; margin:0 auto; }
 
     @media (max-width: 980px) {
@@ -75,6 +114,7 @@
 
   <div id="finalWrap" class="final-wrap">
     <div class="panel elements-panel">
+      <div class="elements-title">Первоэлементы</div>
       <div class="elements-grid" id="elementsGrid"></div>
     </div>
 

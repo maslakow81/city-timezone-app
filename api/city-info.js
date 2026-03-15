@@ -73,12 +73,11 @@ export default async function handler(req, res) {
       const outHours = String(Math.floor(normalizedMinutes / 60)).padStart(2, '0');
       const outMinutes = String(normalizedMinutes % 60).padStart(2, '0');
 
-      const sign = totalOffsetSeconds >= 0 ? '%2B' : '-';
       const absOffsetMinutes = Math.abs(offsetMinutes);
       const tzHours = String(Math.floor(absOffsetMinutes / 60)).padStart(2, '0');
       const tzMinutes = String(absOffsetMinutes % 60).padStart(2, '0');
 
-      return `${outYear}-${outMonth}-${outDay}T${outHours}:${outMinutes}:00${sign}${tzHours}:${tzMinutes}`;
+      return `${outYear}-${outMonth}-${outDay}T${outHours}:${outMinutes}:00%2B${tzHours}:${tzMinutes}`;
     }
 
     async function getProkeralaToken() {
